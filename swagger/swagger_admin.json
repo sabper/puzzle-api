@@ -1,0 +1,318 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Barogo Admin API",
+        "description": "바로고 Admin API.",
+        "version": "0.1.0",
+        "termsOfService": "https://github.com/barogo-strategicplanning/barogo-api/wiki/REST-API/",
+        "contact": {
+            "email": ["jwyoon@barogo.com", "dwlee@barogo.com"],
+            "url": "https://github.com/barogo-strategicplanning/barogo-api/wiki/REST-API"
+        }
+    },
+    "host": "13.124.31.64:3500",
+    "schemes": [
+        "http"
+    ],
+    "basePath": "/api/v1",
+    "tags": [
+      {
+        "name": "user",
+        "description": "admin 사용자"
+      }
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/user": {
+            "get": {
+                "summary": "라이더 목록 조회",
+                "description": "라이더 목록 조회",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "x-access-token",
+                    "description": "access token",
+                    "required": true,
+                    "type": "string"
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "라이더 목록",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/user"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "라이더 목록 조회 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Admin 사용자 등록",
+                "description": "Admin 사용자 등록",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "Admin 사용자 정보",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/admin_user"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Admin 사용자 등록 완료",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/user_create_res"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Admin 사용자 등록 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }            
+        },
+        "/user/login": {
+            "post": {
+                "summary": "Admin 사용자 로그인",
+                "description": "Admin 사용자 로그인",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "Admin 사용자 id / password",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/user_login"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Admin 사용자 login",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/user_login_res"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "사용자 등록 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }           
+        },
+        "/user/admin/{adminId}": {
+            "put": {
+                "summary": "Admin 권한 지정",
+                "description": "Admin 권한 지정",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "x-access-token",
+                    "description": "access token",
+                    "required": true,
+                    "type": "string"
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Admin 권한 지정 성공",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "사용자 등록 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }           
+        }
+    },
+    "definitions": {
+        "user": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string",
+                    "description": "objectID"
+                },
+                "uid": {
+                    "type": "string",
+                    "description": "사용자 uid"
+                },
+                "user_type": {
+                    "type": "string",
+                    "description": "사용자 구분 (mail, kakao, admin)"
+                },               
+                "email": {
+                    "type": "string",
+                    "description": "사용자 이메일"
+                },               
+                "phone": {
+                    "type": "string",
+                    "description": "사용자 전화번호"
+                },               
+                "rider_reg_status": {
+                    "type": "boolean",
+                    "description": "라이더 등록 여부"
+                },               
+                "call_status": {
+                    "type": "boolean",
+                    "description": "콜 수락 여부"
+                },               
+                "device_token": {
+                    "type": "boolean",
+                    "description": "device token"
+                },               
+                "order_routes": {
+                    "type": "array",
+                    "description": "수행 중인 주문 경로"
+                },               
+                "update_dt": {
+                    "type": "date",
+                    "description": "수정 일자"
+                },               
+                "create_dt": {
+                    "type": "date",
+                    "description": "등록 일자"
+                }
+            }
+        },        
+        "admin_user": {
+            "type": "object",
+            "properties": {
+                "adminId": {
+                    "type": "string",
+                    "description": "Admin ID"
+                },
+                "password": {
+                    "type": "string",
+                    "description": "Admin password"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Admin 사용자 이름"
+                },               
+                "phone": {
+                    "type": "integer",
+                    "description": "Admin 사용자 전화번호"
+                }
+            }
+        },
+        "user_create_res": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "성공 메시지"
+                },
+                "adminId": {
+                    "type": "string",
+                    "description": "Admin ID"
+                }
+            }
+        },        
+        "user_login": {
+            "type": "object",
+            "properties": {
+                "adminId": {
+                    "type": "string",
+                    "description": "Admin ID"
+                },
+                "password": {
+                    "type": "string",
+                    "description": "Admin password"
+                }
+            }
+        },
+        "user_login_res": {
+            "type": "object",
+            "properties": {
+                "adminId": {
+                    "type": "string",
+                    "description": "Admin ID"
+                },
+                "token": {
+                    "type": "string",
+                    "description": "발급된 토큰. 유효 시간 1시간"
+                }
+            }
+        },
+        "message_response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

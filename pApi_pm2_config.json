@@ -1,0 +1,14 @@
+{
+  "apps": [{
+    "name": "pApi",
+    "script": ".",
+    "watch": true,
+    "node_args": "-r dotenv/config index.js dotenv_config_path=./puzzle_api.env",
+    "env": {
+      "NODE_ENV": "production",
+      "PROCESS_TYPE": "api"
+    },
+    "max_restarts": 3,
+    "autorestart:": false
+  }]
+}

@@ -1,0 +1,1517 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Barogo API",
+        "description": "바로고 API.",
+        "version": "0.2.0",
+        "termsOfService": "https://github.com/barogo-strategicplanning/barogo-api/wiki/REST-API/",
+        "contact": {
+            "email": "jwyoon@barogo.com",
+            "url": "https://github.com/barogo-strategicplanning/barogo-api/wiki/REST-API"
+        }
+    },
+    "host": "13.124.31.64:3000",
+    "schemes": [
+        "http"
+    ],
+    "basePath": "/api/v1",
+    "tags": [
+      {
+        "name": "users",
+        "description": "사용자 인증, 조회, 로그인 등",
+        "externalDocs": {
+          "description": "Find out more",
+          "url": ""
+        }
+      }
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/users/user": {
+            "post": {
+                "summary": "사용자 등록",
+                "description": "firebase 연동. <br> 요청한 email, password 로 firebase 사용자 등록 => 해당 정보로 로그인 => 인증 메일 발송 => customToken 발행 하여 반환",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "사용자 email / password",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/user_auth"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "사용자 등록, 로그인, 토큰발행, 인증 메일 발송 정상 처리",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/user_post_response"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "사용자 등록 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/kakao": {
+            "post": {
+                "summary": "카카오톡 사용자 검증 및 등록",
+                "description": " 앱에서 카카오톡 사용자 로그인 후 <br/> 1. 기 등록된 사용자일 경우 전화번호 변경여부 검증 후 사용자 기본 정보 조회하여 return <br/> 2. 등록된 사용자 아닐 경우 사용자 등록 후 사용자 기본 정보 return",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "검증 파라미터",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/kakao_auth"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "신규 사용자 : 사용자 등록 완료 <br/> 기존 사용자 : 사용자 조회 완료",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/kakao_post_response"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "검증 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/login": {
+            "post": {
+                "summary": "사용자 로그인",
+                "description": "이메일/비밀번호 사용자 로그인. <br/> 로그인 성공하면 customToken 반환. <br/> 클라이언트에서는 반환받은 customToken으로 로그인 후 idToken으로 서버와 인증",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "사용자 email / password",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/login_auth"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "휴대폰 번호 / 이메일 인증 검증. <br/> 로그인 통과 되면 인증 검증과 상관없이 200 ok. <br/> 휴대폰 번호 조회되지 않을 경우 자동으로 휴대폰 번호 갱신 <br/> customToken 토큰, 인증 결과 반환.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/login_post_response"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "로그인 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/auth": {
+            "post": {
+                "summary": "사용자 인증 여부 및 상태 조회",
+                "description": " 1. idToken 토큰 검증 -> <br/> 2. 휴대폰 번호 조회 / update -> <br/> 3. 이메일 인증 검증 -> <br/> 4. 라이더 등록 검증 -> <br/> 5. 콜수행 on/off 상태값 조회",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "검증 파라미터",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/token_auth"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "idToken 검증 통과",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/login_post_response"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "검증 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/{uid}/call-status": {
+            "put": {
+                "summary": "라이더 콜 수신 여부 수정",
+                "description": "토큰 검증 -> 라이더 콜 수신 여부 수정",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "콜 수신 여부 파라미터",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/call_status"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "라이더 콜 수신여부 수정 성공",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "수정 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/{uid}/phone": {
+            "put": {
+                "summary": "핸대폰 번호 변경",
+                "description": "등록된 휴대폰 번호 다른 번호일 경우, 휴대폰 번호 변경",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "변경 하려는 휴대폰 번호",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/phone_modify"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "휴대폰 변경 성공",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "수정 오류",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/{uid}/auth-email": {
+            "post": {
+                "summary": "인증 메일 재전송",
+                "description": "인증 메일 재전송",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "인증 매일 재전송 요청 성공",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "메일 발송시 오류 발생",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/pass-email": {
+            "post": {
+                "summary": "비밀번호 재설정 메일 전송",
+                "description": "비밀번호 재설정 메일 전송 요청",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "전송할 이메일",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/email_param"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "비밀번호 재설정 매일 재전송 요청 성공",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "메일 발송시 오류 발생",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/{uid}/device-token": {
+            "put": {
+                "summary": "사용자 device token 수정",
+                "description": "사용자 device token 수정",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "device token",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/device_token_param"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "device token 수정 완료",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "device token 수정 완료",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/{uid}/app-close": {
+            "put": {
+                "summary": "app 활성 상태 false. app 종료 시 호출",
+                "description": "사용자 device token 수정",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "app 활성 상태 false",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "device token 수정시 오류 발생",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/user/push": {
+            "post": {
+                "summary": "push 테스트",
+                "description": "push 테스트용 API",
+                "tags": [
+                    "Users"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "description": "전송할 이메일",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/push_param"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "push 전송 요청 성공",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "push 전송 요청 시 오류 발생",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/{orderId}/pickupWithRouter": {
+            "get": {
+                "summary": "주문 정보 조회 (경로정보)",
+                "description": "현재 위치 ~ 픽업 위치 경로, 소요 시간 포함된 자세한 주문정보 조회 <br/> 주문 상태(=접수), 주문 수행 상태(=pickup request), 주문 배차 검증 함.",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "query",
+                    "name": "uid",
+                    "description": "기사 uid",
+                    "required": true,
+                    "type": "string"
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "주문 정보. 경로 정보 포함",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/res_order_route"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "주문 정보 조회 실패",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/{orderId}/pickupAcceptByUser": {
+            "post": {
+                "summary": "라이더 주문 pickup 수락 여부",
+                "description": "라이더에게 pickup 요청 된 주문에 대한 수락 여부",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/pickup_param"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "라이더 주문 pickup 수락 정상 처리",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "라이더 주문 pickup 처리 실패",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/{orderId}/pickupFinish": {
+            "post": {
+                "summary": "라이더 주문 pickup 완료",
+                "description": "라이더 주문 상품 pickup 완료 - drop 으로 주문 상태 변경",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/pickup_finish_param"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "라이더 주문 pickup 완료 정상 처리 ",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "라이더 주문 pickup 완료 처리 실패",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/{orderId}/pickupReview": {
+            "post": {
+                "summary": "라이더 -> 가맹점 평가",
+                "description": "라이더 -> 가맹점 평가",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/pickup_review_param"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "라이더 -> 가맹점 평가 완료",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "라이더 -> 가맹점 평가 실패",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/{orderId}/dropFinishByUser": {
+            "post": {
+                "summary": "라이더 주문 drop 완료",
+                "description": "라이더 주문 상품 drop 완료 - drop 으로 주문 상태 변경",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                      "$ref": "#/definitions/drop_finish_param"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "라이더 주문 drop 완료 정상 처리 ",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/message_response"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "라이더 주문 drop 완료 처리 실패",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/{uid}/route": {
+            "get": {
+                "summary": "라이더가 수행 중인 주문들의 경로 (pickup or drop)",
+                "description": "완료, 취소 된 주문은 경로에 포함되지 않음",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "라이더 수행 중인 주문들의 경로 조회 성공",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/res_order_all_route"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "라이더 수행 중인 주문들의 경로 조회 실패",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/{uid}/routeWithoutLoc": {
+            "get": {
+                "summary": "라이더가 수행 중인 주문들의 경로 (pickup or drop). 경유지간 좌표, 소요시간 없음",
+                "description": "완료, 취소 된 주문은 경로에 포함되지 않음",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "라이더 수행 중인 주문들의 경로 조회 성공",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/res_order_route_without_loc"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "라이더 수행 중인 주문들의 경로 조회 실패",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/route": {
+            "post": {
+                "summary": "지점간의 좌표, 소요시간",
+                "description": "파라미터로 주어진 지점 간의 경로 좌표와 소요시간 return",
+                "tags": [
+                    "Order"
+                ],
+                "parameters": [
+                  {
+                    "in": "header",
+                    "name": "apikey",
+                    "description": "apikey",
+                    "required": true,
+                    "type": "string"
+                  },
+                  {
+                    "in": "body",
+                    "name": "body",
+                    "required": true,                  
+                    "schema": {
+                      "$ref": "#/definitions/point_route_param"
+                    }
+                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "지점간의 경로 좌표, 소요시간",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/point_routes"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "라이더 수행 중인 주문들의 경로 조회 실패",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "User": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "사용자 이름"
+                },
+                "apikey": {
+                    "type": "string",
+                    "description": "api 호출 user만 생성. 일반 사용자는 해당 안됨."
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "사용자 전화번호"
+                }
+            }
+        },
+        "user_auth": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "phone",
+                "device_token"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "01111111234"
+                },
+                "device_token": {
+                    "type": "string",
+                    "description": "app 에서 발행한 device token. push용"
+                }
+            }
+        },
+        "login_auth": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "phone",
+                "device_token"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "01111111234"
+                },
+                "device_token": {
+                    "type": "string",
+                    "description": "app 에서 발행한 device token. push용"
+                }
+            }
+        },
+        "token_auth": {
+            "type": "object",
+            "required": [
+                "token",
+                "phone"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "idToken"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "01111111234"
+                }
+            }
+        },
+        "kakao_auth": {
+            "type": "object",
+            "required": [
+                "id",
+                "phone",
+                "device_token"
+            ],
+            "properties": {
+                "phone": {
+                    "type": "string",
+                    "description": "01111111234"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "카카오에서 조회된 id"
+                },
+                "nickname": {
+                    "type": "string",
+                    "description": "카카오에서 조회된 nickname"
+                },
+                "thumbnailImage": {
+                    "type": "string",
+                    "description": "카카오에서 조회된 thumbnailImage"
+                },
+                "profileImage": {
+                    "type": "string",
+                    "description": "카카오에서 조회된 profileImage"
+                },
+                "device_token": {
+                    "type": "string",
+                    "description": "device token"
+                }
+            }
+        },
+        "call_status": {
+            "type": "object",
+            "required": [
+                "uid",
+                "is_call_status",
+                "vehicle_satus"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "idToken / 카카오 사용자의 경우 없음."
+                },
+                "is_call_status": {
+                    "type": "boolean",
+                    "description": "콜 수신 여부"
+                },
+                "vehicle_status": {
+                    "type": "string",
+                    "description": "운송 수단 오토바이 / 자전거 / 도보 (motor / bike / walk)",
+                    "default": "motor"
+                }
+            }
+        },
+        "phone_modify": {
+            "type": "object",
+            "required": [
+                "phone"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "description": "idToken / 카카오 사용자의 경우 없음."
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "변경하려는 휴대폰 번호"
+                }
+            }
+        },
+        "email_param": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "description": "전송할 이메일"
+                }
+            }
+        },
+        "user_post_response": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string",
+                    "description": "사용자 uid. firebase 에서 제공"
+                },
+                "token": {
+                    "type": "string",
+                    "description": "customToken. firebase 에서 발행. customToken으로 사용자 로그인. 사용자 로그인 후 idToken 조회 가능."
+                },
+                "email_auth_status": {
+                    "type": "boolean",
+                    "description": "이메일 인증 상태"
+                },
+                "phone_status": {
+                    "type": "boolean",
+                    "description": "휴대폰 번호 검증 상태"
+                },
+                "rider_reg_status": {
+                    "type": "boolean",
+                    "description": "라이더 등록 상태",
+                    "default": false
+                },
+                "call_status": {
+                    "type": "boolean",
+                    "description": "콜 수신 여부",
+                    "default": false
+                },
+                "vehicle_satus": {
+                    "type": "string",
+                    "description": "운송 수단 오토바이 / 자전거 / 도보 (motor / bike / walk)",
+                    "default": "motor"
+                }
+            }
+        },
+        "login_post_response": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "email_auth_status": {
+                    "type": "boolean",
+                    "description": "이메일 인증 상태"
+                },
+                "phone_status": {
+                    "type": "boolean",
+                    "description": "휴대폰 번호 변경 여부. true: 변경됨 / false: 변경되지 않음"
+                },
+                "uid": {
+                    "type": "string",
+                    "description": "사용자 uid. firebase 에서 제공"
+                },
+                "token": {
+                    "type": "string",
+                    "description": "customToken. 클라이언트 로그인 용"
+                },
+                "rider_reg_status": {
+                    "type": "boolean",
+                    "description": "라이더 등록 상태",
+                    "default": false
+                },
+                "call_status": {
+                    "type": "boolean",
+                    "description": "콜 수신 여부",
+                    "default": false
+                },
+                "vehicle_satus": {
+                    "type": "string",
+                    "description": "운송 수단 오토바이 / 자전거 / 도보 (motor / bike / walk)",
+                    "default": "motor"
+                },
+                "order_routes_len": {
+                    "type": "string",
+                    "description": "사용자가 수행 중인 주문 경로 갯수",
+                    "default": "0"
+                }
+            }
+        },
+        "kakao_post_response": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string",
+                    "description": "사용자 uid. firebase 에서 제공"
+                },
+                "phone_status": {
+                    "type": "boolean",
+                    "description": "휴대폰 번호 변경 여부. true: 변경됨 / false: 변경되지 않음"
+                },
+                "rider_reg_status": {
+                    "type": "boolean",
+                    "description": "라이더 등록 상태",
+                    "default": false
+                },
+                "call_status": {
+                    "type": "boolean",
+                    "description": "콜 수신 여부",
+                    "default": false
+                },
+                "vehicle_satus": {
+                    "type": "string",
+                    "description": "운송 수단 오토바이 / 자전거 / 도보 (motor / bike / walk)",
+                    "default": "motor"
+                }
+            }
+        },
+        "res_order_route": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "주문 id"
+                },
+                "order_status": {
+                    "type": "string",
+                    "description": "주문 상태 코드 (1:접수, 2:배차, 3:완료, 4:강제, 5:문의, 6:대기, 7:대기해제, 8:배차취소, 9:취소, 10:오더수정, 11:재접수, 12:LOCK, 13:픽업, 14:예약)"
+                },
+                "order_sub_status_cd": {
+                    "type": "string",
+                    "description": "출발지(가맹점) 이름"
+                },
+                "order_st_name": {
+                    "type": "boolean",
+                    "description": "출발지(가맹점) 이름"
+                },
+                "order_st_tel": {
+                    "type": "string",
+                    "description": "출발지(가맹점) 대표 번호"
+                },
+                "order_memo": {
+                    "type": "string",
+                    "description": "주문 메모"
+                },
+                "order_sa_location": {
+                    "type": "string",
+                    "description": "출발지(가맹점) 좌표"
+                },
+                "order_sa_addr": {
+                    "type": "boolean",
+                    "description": "출발지(가맹점) 주소"
+                },
+                "order_end_addr": {
+                    "type": "string",
+                    "description": "도착 주소"
+                },
+                "order_cu_tel": {
+                    "type": "string",
+                    "description": "접수 주문 고객 전화번호"
+                },
+                "order_amt": {
+                    "type": "string",
+                    "description": "주문 금액"
+                },
+                "dvry_amt": {
+                    "type": "string",
+                    "description": "배달 대행료"
+                },
+                "goods": {
+                    "type": "array",
+                    "description": "상품 정보",
+                    "items": {
+                        "$ref": "#/definitions/goods"
+                    }
+                }
+            }
+        },
+        "goods": {
+            "type": "object",
+            "properties": {
+                "goods_no": {
+                    "type": "number",
+                    "description": "상품 고유 번호 (오라클)"
+                },
+                "_id": {
+                    "type": "string",
+                    "description": "상품 고유 id (몽고)"
+                },
+                "goods_name": {
+                    "type": "string",
+                    "description": "상품 이름"
+                },
+                "goods_memo": {
+                    "type": "string",
+                    "description": "상품 메모"
+                },
+                "goods_barcode": {
+                    "type": "string",
+                    "description": "상품 바코드"
+                },
+                "goods_price": {
+                    "type": "number",
+                    "description": "상품 가격"
+                },
+                "goods_sell_price": {
+                    "type": "number",
+                    "description": "상품 판매 가격"
+                },
+                "goods_cnt": {
+                    "type": "string",
+                    "description": "상품 갯수"
+                }
+            }
+        },
+        "routes": {
+            "type": "object",
+            "properties": {
+                "seconde": {
+                    "type": "number",
+                    "description": "소요 시간"
+                },
+                "route": {
+                    "type": "array",
+                    "description": "경로 정보",
+                    "items": {
+                        "$ref": "#/definitions/route"
+                    }
+                }
+            }
+        },
+        "route": {
+            "type": "object",
+            "properties": {
+                "lon": {
+                    "type": "string",
+                    "description": "위도"
+                },
+                "lat": {
+                    "type": "string",
+                    "description": "경도"
+                }
+            }
+        },
+        "res_order_all_route": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string",
+                    "description": "사용자 uid"
+                },
+                "order_routes": {
+                    "type": "array",
+                    "description": "수행 중인 주문들의 경로(pickup / drop) 목록",
+                    "items": {
+                        "$ref": "#/definitions/order_routes"
+                    }
+                }
+            }
+        },
+        "res_order_route_without_loc": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string",
+                    "description": "사용자 uid"
+                },
+                "order_routes": {
+                    "type": "array",
+                    "description": "수행 중인 주문들의 경로(pickup / drop) 목록",
+                    "items": {
+                        "$ref": "#/definitions/order_routes_without_loc"
+                    }
+                }
+            }
+        },
+        "order_routes": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "주문 번호"
+                },
+                "order_type": {
+                    "type": "string",
+                    "description": "수행 중인 주문의 경로 구분 값 (pickup / drop)"
+                },
+                "point_location": {
+                    "type": "string",
+                    "description": "목적지 위치 좌표 (pickup type : 가맹점 좌표 / drop type : 고객 좌표)"
+                },
+                "point_location_name": {
+                    "type": "string",
+                    "description": "목적지 위치 이름 (pickup type : 가맹점 이름 / drop type : 고객 이름)"
+                },
+                "point_location_address": {
+                    "type": "string",
+                    "description": "목적지 위치 주소 (pickup type : 가맹점 주소 / drop type : 고객 주소)"
+                },
+                "point_location_tel": {
+                    "type": "string",
+                    "description": "목적지 위치 전화번호 (pickup type : 가맹점 전화번호 / drop type : 고객 전화번호)"
+                },
+                "ord_st_review_score": {
+                    "type": "string",
+                    "description": "가맹점 별점 평균"
+                },
+                "order_status": {
+                    "type": "string",
+                    "description": "주문 상태 코드 (1:접수, 2:배차, 3:완료, 4:강제, 5:문의, 6:대기, 7:대기해제, 8:배차취소, 9:취소, 10:오더수정, 11:재접수, 12:LOCK, 13:픽업, 14:예약)"
+                },
+                "order_memo": {
+                    "type": "string",
+                    "description": "주문 메모"
+                },
+                "order_amt": {
+                    "type": "string",
+                    "description": "주문 금액"
+                },
+                "dvry_amt": {
+                    "type": "string",
+                    "description": "배달 대행료"
+                },                
+                "goods": {
+                    "type": "array",
+                    "description": "상품 정보",
+                    "items": {
+                        "$ref": "#/definitions/goods"
+                    }
+                }
+            }
+        },      
+        "order_routes_without_loc": {
+            "type": "object",
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "주문 번호"
+                },
+                "order_type": {
+                    "type": "string",
+                    "description": "수행 중인 주문의 경로 구분 값 (pickup / drop)"
+                },
+                "point_lat": {
+                    "type": "string",
+                    "description": "목적지 위치 좌표 위도 (pickup type : 가맹점 좌표 / drop type : 고객 좌표)"
+                },
+                "point_lon": {
+                    "type": "string",
+                    "description": "목적지 위치 좌표 경도 (pickup type : 가맹점 좌표 / drop type : 고객 좌표)"
+                },
+                "order_status": {
+                    "type": "string",
+                    "description": "주문 상태 코드 (1:접수, 2:배차, 3:완료, 4:강제, 5:문의, 6:대기, 7:대기해제, 8:배차취소, 9:취소, 10:오더수정, 11:재접수, 12:LOCK, 13:픽업, 14:예약)"
+                },
+                "cock_time": {
+                    "type": "string",
+                    "description": "조리 시간"
+                }
+            }
+        },
+        "point_routes": {
+            "type": "object",
+            "properties": {
+                "routes": {
+                    "type": "array",
+                    "description": "모든 경로에 대한 좌표",
+                    "items": {
+                        "$ref": "#/definitions/routes"
+                    }
+                }
+            }
+        },   
+        "data": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "device_token_param": {
+            "type": "object",
+            "required": [
+                "device_token"
+            ],
+            "properties": {
+                "device_token": {
+                    "type": "string",
+                    "description": "device token"
+                }
+            }
+        },
+        "push_param": {
+            "type": "object",
+            "required": [
+                "to"
+            ],
+            "properties": {
+                "to": {
+                    "type": "string",
+                    "description": "device token"
+                },
+                "notifcation": {
+                    "$ref": "#/definitions/data"
+                }
+            }
+        },
+        "pickup_param": {
+            "type": "object",
+            "required": [
+                "order_id",
+                "uid",
+                "is_pickup"
+            ],
+            "properties": {
+                "order_id": {
+                    "type": "string",
+                    "description": "주문 번호"
+                },
+                "uid": {
+                    "type": "string",
+                    "description": "라이더 uid"
+                },
+                "is_pickup": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "pikcup 요청 수락 여부."
+                },
+                "user_mapX": {
+                    "type": "string",
+                    "description": "기사 현재 위치 x좌표"
+                },
+                "user_mapY": {
+                    "type": "string",
+                    "description": "기사 현재 위치 Y좌표"
+                }
+            }
+        },
+        "pickup_finish_param": {
+            "type": "object",
+            "required": [
+                "uid"
+            ],
+            "properties": {
+                "uid": {
+                    "type": "string",
+                    "description": "라이더 uid"
+                }
+            }
+        },
+        "pickup_review_param": {
+            "type": "object",
+            "required": [
+                "uid",
+                "ord_st_cd",
+                "star"
+            ],
+            "properties": {
+                "uid": {
+                    "type": "string",
+                    "description": "라이더 uid"
+                },
+                "ord_st_cd": {
+                    "type": "string",
+                    "description": "가맹점 코드"
+                },
+                "star": {
+                    "type": "string",
+                    "description": "별점"
+                }
+            }
+        },
+        "drop_finish_param": {
+            "type": "object",
+            "required": [
+                "uid"
+            ],
+            "properties": {
+                "uid": {
+                    "type": "string",
+                    "description": "라이더 uid"
+                }
+            }
+        },
+        "point_route_param": {
+            "type": "object",
+            "properties": {
+                "point_coordinates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/route"
+                    }
+                }
+            },
+            "required": [
+                "point_coordinates"
+            ]
+        },
+        "message_response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
