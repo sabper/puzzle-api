@@ -1,16 +1,16 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Barogo API",
-        "description": "바로고 API.",
-        "version": "0.2.0",
-        "termsOfService": "https://github.com/barogo-strategicplanning/barogo-api/wiki/REST-API/",
+        "title": "Puzzle API",
+        "description": "퍼즐 API.",
+        "version": "0.1.0",
+        "termsOfService": "https://github.com/sabper/puzzle-api",
         "contact": {
-            "email": "jwyoon@barogo.com",
-            "url": "https://github.com/barogo-strategicplanning/barogo-api/wiki/REST-API"
+            "email": "sabper@gamil.com",
+            "url": "https://github.com/sabper/puzzle-api"
         }
     },
-    "host": "13.124.31.64:3000",
+    "host": "52.192.182.209:3000",
     "schemes": [
         "http"
     ],
